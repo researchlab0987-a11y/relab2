@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isAdmin() {
+      return isSignedIn() && getRole() == 'admin';
+    }
+    function isCollaborator() {
+      return isSignedIn() && (getRole() == 'collaborator' || getRole() == 'admin');
+    }
+
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /theme/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /collaborators/{docId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isCollaborator() && resource.data.uid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+    match /publications/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /researchIdeas/{docId} {
+      allow read: if true;
+      allow create: if isCollaborator();
+      allow update: if isCollaborator();
+      allow delete: if isAdmin() || (isCollaborator() && resource.data.authorId == request.auth.uid);
+    }
+    match /comments/{docId} {
+      allow read: if true;
+      allow create: if isCollaborator();
+      allow update: if isCollaborator();
+      allow delete: if isAdmin() || (isCollaborator() && resource.data.authorId == request.auth.uid);
+    }
+    match /announcements/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /gallery/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /pendingRequests/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /contactMessages/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || request.auth.uid == userId;
+    }
+  }
+}
