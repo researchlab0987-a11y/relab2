@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,17 +104,33 @@ const Login: React.FC = () => {
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Password
             </label>
-            <input
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, password: e.target.value }))
-              }
-              className="w-full px-4 py-2.5 text-sm rounded-xl border outline-none"
-              style={{ borderColor: "#d1d5db" }}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={form.password}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, password: e.target.value }))
+                }
+                className="w-full px-4 py-2.5 text-sm rounded-xl border outline-none pr-10"
+                style={{ borderColor: "#d1d5db" }}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
             {/* Forgot Password link */}
             <div className="text-right mt-1.5">
               <button
@@ -161,7 +178,7 @@ const Login: React.FC = () => {
 
           <p className="text-center text-xs text-gray-400 mt-2">
             Not a collaborator yet?{" "}
-            <a
+            
               href="/collaborators"
               className="font-semibold no-underline hover:underline"
               style={{ color: "var(--color-secondary)" }}
