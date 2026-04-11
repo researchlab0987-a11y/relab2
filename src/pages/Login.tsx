@@ -1,8 +1,9 @@
 import { sendPasswordResetEmail } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { auth } from "../firebase/config";
+import { auth, db } from "../firebase/config";
 
 const Login: React.FC = () => {
   const { login, role } = useAuth();
@@ -38,32 +39,35 @@ const Login: React.FC = () => {
   };
 
   const handleForgotPassword = async () => {
+    // Step 1: check email field is filled
     if (!form.email) {
       setError("Please enter your email address first.");
       return;
     }
+
     setResetLoading(true);
     setError("");
-    try {
-      // Check if email exists in Firestore users collection
-      const { getDocs, collection, query, where } =
-        await import("firebase/firestore");
-      const { db } = await import("../firebase/config");
+    setResetSent(false);
 
+    try {
+      // Step 2: check if email exists in Firestore
       const q = query(
         collection(db, "users"),
         where("email", "==", form.email),
       );
       const snap = await getDocs(q);
 
+      // Step 3: if not found, show error and stop
       if (snap.empty) {
         setError("No account found with this email address.");
+        setResetLoading(false);
         return;
       }
 
-      // Email exists — send reset email
+      // Step 4: email exists, send reset email
       await sendPasswordResetEmail(auth, form.email);
       setResetSent(true);
+      setError("");
     } catch (err: any) {
       setError("Could not send reset email. Please try again.");
     } finally {
@@ -100,6 +104,7 @@ const Login: React.FC = () => {
         </div>
 
         <form onSubmit={submit} className="px-8 py-8 flex flex-col gap-5">
+          {/* Email Field */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Email
@@ -117,6 +122,7 @@ const Login: React.FC = () => {
             />
           </div>
 
+          {/* Password Field */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Password
@@ -133,6 +139,7 @@ const Login: React.FC = () => {
                 style={{ borderColor: "#d1d5db" }}
                 placeholder="••••••••"
               />
+              {/* Show/Hide Password Toggle */}
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
@@ -148,6 +155,7 @@ const Login: React.FC = () => {
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
+
             {/* Forgot Password link */}
             <div className="text-right mt-1.5">
               <button
@@ -174,12 +182,14 @@ const Login: React.FC = () => {
             </p>
           )}
 
+          {/* Error message */}
           {error && (
             <p className="text-sm text-red-500 bg-red-50 px-4 py-2 rounded-lg">
               {error}
             </p>
           )}
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
