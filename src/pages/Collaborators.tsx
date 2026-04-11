@@ -110,24 +110,34 @@ const Collaborators: React.FC = () => {
     <div>
       {/* Hero */}
       <section
-        className="py-20 text-center px-4"
+        className="relative overflow-hidden py-20 text-center px-4"
         style={{ background: "var(--color-primary)" }}
       >
-        <h1
-          className="font-black text-white mb-4"
-          style={{
-            fontSize: "clamp(2rem,4vw,3rem)",
-            fontFamily: "var(--font-heading)",
-          }}
-        >
-          {content["collaborators.pageTitle"] ?? "Our Collaborators"}
-        </h1>
-        <p
-          className="text-base max-w-xl mx-auto"
-          style={{ color: "rgba(255,255,255,0.75)" }}
-        >
-          {content["collaborators.pageSubtitle"] ?? ""}
-        </p>
+        {content["collaborators.bannerUrl"] && (
+          <img
+            src={content["collaborators.bannerUrl"]}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: "brightness(0.45)" }}
+          />
+        )}
+        <div className="relative z-10">
+          <h1
+            className="font-black text-white mb-4"
+            style={{
+              fontSize: "clamp(2rem,4vw,3rem)",
+              fontFamily: "var(--font-heading)",
+            }}
+          >
+            {content["collaborators.pageTitle"] ?? "Our Collaborators"}
+          </h1>
+          <p
+            className="text-base max-w-xl mx-auto"
+            style={{ color: "rgba(255,255,255,0.75)" }}
+          >
+            {content["collaborators.pageSubtitle"] ?? ""}
+          </p>
+        </div>
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
