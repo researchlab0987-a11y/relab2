@@ -10,16 +10,17 @@ const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [collaboratorPhoto, setCollaboratorPhoto] = useState<string>("");
+  const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/about", label: "About" },
-    { to: "/collaborators", label: "Collaborators" },
-    { to: "/publications", label: "Publications" },
-    { to: "/research-ideas", label: "Research Ideas" },
-    { to: "/gallery", label: "Gallery" },
-    { to: "/contact", label: "Contact" },
+    { to: "/", label: "Home", icon: "🏠" },
+    { to: "/about", label: "About", icon: "ℹ️" },
+    { to: "/collaborators", label: "Collaborators", icon: "👥" },
+    { to: "/publications", label: "Publications", icon: "📚" },
+    { to: "/research-ideas", label: "Research Ideas", icon: "💡" },
+    { to: "/gallery", label: "Gallery", icon: "🖼️" },
+    { to: "/contact", label: "Contact", icon: "✉️" },
   ];
 
   const isActive = (path: string) =>
@@ -27,21 +28,26 @@ const Navbar: React.FC = () => {
       ? location.pathname === "/"
       : location.pathname.startsWith(path);
 
-  // Fetch collaborator photo if role is collaborator
+  // Scroll shadow effect
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Fetch collaborator photo
   useEffect(() => {
     if (role !== "collaborator" || !appUser?.uid) return;
     getDocs(
       query(collection(db, "collaborators"), where("uid", "==", appUser.uid)),
     )
       .then((snap) => {
-        if (!snap.empty) {
-          setCollaboratorPhoto(snap.docs[0].data().photo ?? "");
-        }
+        if (!snap.empty) setCollaboratorPhoto(snap.docs[0].data().photo ?? "");
       })
       .catch(() => {});
   }, [role, appUser?.uid]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -55,10 +61,31 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Close dropdown on route change
+  // Close everything on route change
   useEffect(() => {
     setDropdownOpen(false);
+    setMenuOpen(false);
   }, [location.pathname]);
+
+  // Close mobile menu on ESC
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   const initials = appUser?.name
     ? appUser.name
@@ -72,286 +99,537 @@ const Navbar: React.FC = () => {
   const avatarPhoto = role === "collaborator" ? collaboratorPhoto : "";
 
   return (
-    <nav
-      style={{
-        background: "var(--color-navbar)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-      }}
-      className="shadow-lg"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+    <>
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes dropdownFade {
+          from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)    scale(1);    }
+        }
+        .nav-link-pill {
+          position: relative;
+          transition: color 0.15s, background 0.15s;
+        }
+        .nav-link-pill:hover {
+          background: rgba(255,255,255,0.1) !important;
+        }
+        .hamburger-line {
+          display: block;
+          width: 22px;
+          height: 2px;
+          border-radius: 99px;
+          background: white;
+          transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+          transform-origin: center;
+        }
+      `}</style>
+
+      <nav
+        style={{
+          background: "var(--color-navbar)",
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          transition: "box-shadow 0.3s ease",
+          boxShadow: scrolled
+            ? "0 4px 24px rgba(0,0,0,0.18)"
+            : "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* ── Logo ── */}
+            <Link
+              to="/"
+              className="flex items-center gap-2 no-underline flex-shrink-0"
+            >
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--color-accent), #f97316)",
+                  boxShadow: "0 2px 8px rgba(245,158,11,0.4)",
+                  color: "#1f2937",
+                }}
+              >
+                R
+              </div>
+              <span
+                style={{
+                  color: "var(--color-accent)",
+                  fontFamily: "var(--font-heading)",
+                }}
+                className="text-xl font-black tracking-tight"
+              >
+                Syed's
+              </span>
+              <span className="text-white text-xl font-black tracking-tight">
+                Lab
+              </span>
+            </Link>
+
+            {/* ── Desktop Nav Links ── */}
+            <div className="hidden lg:flex items-center gap-0.5">
+              {navLinks.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  className="nav-link-pill no-underline px-3.5 py-2 rounded-lg text-sm"
+                  style={{
+                    color: isActive(l.to)
+                      ? "var(--color-accent)"
+                      : "rgba(255,255,255,0.82)",
+                    fontWeight: isActive(l.to) ? 700 : 500,
+                    background: isActive(l.to)
+                      ? "rgba(255,255,255,0.1)"
+                      : "transparent",
+                    borderBottom: isActive(l.to)
+                      ? "2px solid var(--color-accent)"
+                      : "2px solid transparent",
+                  }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* ── Right side ── */}
+            <div className="hidden lg:flex items-center gap-3">
+              {!role && (
+                <Link
+                  to="/login"
+                  className="no-underline text-xs font-bold px-4 py-2 rounded-lg transition-all"
+                  style={{
+                    color: "#1f2937",
+                    background: "var(--color-accent)",
+                    boxShadow: "0 2px 8px rgba(245,158,11,0.35)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.transform =
+                      "translateY(-1px)";
+                    (e.currentTarget as HTMLElement).style.boxShadow =
+                      "0 4px 16px rgba(245,158,11,0.5)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.transform =
+                      "translateY(0)";
+                    (e.currentTarget as HTMLElement).style.boxShadow =
+                      "0 2px 8px rgba(245,158,11,0.35)";
+                  }}
+                >
+                  Portal Login
+                </Link>
+              )}
+
+              {/* Avatar dropdown */}
+              {(role === "admin" || role === "collaborator") && (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setDropdownOpen((o) => !o)}
+                    className="flex items-center gap-2.5 rounded-full border-none cursor-pointer px-2 py-1"
+                    style={{
+                      background: dropdownOpen
+                        ? "rgba(255,255,255,0.18)"
+                        : "rgba(255,255,255,0.08)",
+                      border: "1.5px solid rgba(255,255,255,0.25)",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <AvatarCircle
+                      photo={avatarPhoto}
+                      initials={initials}
+                      size={32}
+                    />
+                    <div className="text-left hidden xl:block">
+                      <p
+                        className="text-white text-xs font-bold leading-tight"
+                        style={{ maxWidth: 100 }}
+                      >
+                        {appUser?.name?.split(" ")[0] ?? "User"}
+                      </p>
+                      <p
+                        className="text-xs"
+                        style={{ color: "rgba(255,255,255,0.5)" }}
+                      >
+                        {role}
+                      </p>
+                    </div>
+                    <span
+                      className="text-white text-xs"
+                      style={{
+                        transform: dropdownOpen
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s ease",
+                        opacity: 0.6,
+                      }}
+                    >
+                      ▾
+                    </span>
+                  </button>
+
+                  {/* Dropdown */}
+                  {dropdownOpen && (
+                    <div
+                      className="absolute right-0 mt-2 rounded-2xl overflow-hidden"
+                      style={{
+                        width: 280,
+                        background: "white",
+                        boxShadow:
+                          "0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.1)",
+                        border: "1px solid #e5e7eb",
+                        zIndex: 200,
+                        animation: "dropdownFade 0.18s ease",
+                      }}
+                    >
+                      {/* Profile header */}
+                      <div
+                        className="px-5 pt-5 pb-4"
+                        style={{ background: "var(--color-primary)" }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <AvatarCircle
+                            photo={avatarPhoto}
+                            initials={initials}
+                            size={48}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-black text-sm leading-tight truncate">
+                              {appUser?.name ?? "User"}
+                            </p>
+                            <p
+                              className="text-xs mt-0.5 truncate"
+                              style={{ color: "rgba(255,255,255,0.6)" }}
+                            >
+                              {appUser?.email ?? ""}
+                            </p>
+                            <span
+                              className="inline-block mt-1.5 text-xs font-bold px-2 py-0.5 rounded-full"
+                              style={{
+                                background:
+                                  role === "admin"
+                                    ? "var(--color-accent)"
+                                    : "rgba(255,255,255,0.15)",
+                                color: role === "admin" ? "#1f2937" : "white",
+                              }}
+                            >
+                              {role === "admin"
+                                ? "Administrator"
+                                : "Collaborator"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Menu items */}
+                      <div className="py-2">
+                        {role === "admin" && (
+                          <DropdownItem
+                            to="/admin"
+                            icon="⚙️"
+                            label="Admin Dashboard"
+                            onClick={() => setDropdownOpen(false)}
+                          />
+                        )}
+                        {role === "collaborator" && (
+                          <DropdownItem
+                            to="/collaborator-portal"
+                            icon="🧪"
+                            label="My Portal"
+                            onClick={() => setDropdownOpen(false)}
+                          />
+                        )}
+                        <DropdownItem
+                          to="/"
+                          icon="🏠"
+                          label="View Website"
+                          onClick={() => setDropdownOpen(false)}
+                        />
+                      </div>
+
+                      {/* Logout */}
+                      <div
+                        className="px-3 pb-3 pt-1 border-t"
+                        style={{ borderColor: "#f0f0f0" }}
+                      >
+                        <button
+                          onClick={() => {
+                            logout();
+                            setDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-none text-left transition-all"
+                          style={{ background: "#fee2e2", color: "#991b1b" }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = "#fecaca")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "#fee2e2")
+                          }
+                        >
+                          <span>🚪</span> Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ── Mobile right: avatar + hamburger ── */}
+            <div className="flex lg:hidden items-center gap-2">
+              {(role === "admin" || role === "collaborator") && (
+                <AvatarCircle
+                  photo={avatarPhoto}
+                  initials={initials}
+                  size={32}
+                />
+              )}
+
+              {/* Animated hamburger */}
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                className="flex flex-col items-center justify-center gap-1.5 w-10 h-10 rounded-xl border-none cursor-pointer"
+                style={{ background: "rgba(255,255,255,0.1)" }}
+                aria-label="Toggle menu"
+              >
+                <span
+                  className="hamburger-line"
+                  style={{
+                    transform: menuOpen
+                      ? "translateY(6px) rotate(45deg)"
+                      : "none",
+                  }}
+                />
+                <span
+                  className="hamburger-line"
+                  style={{
+                    opacity: menuOpen ? 0 : 1,
+                    width: menuOpen ? "0px" : "22px",
+                  }}
+                />
+                <span
+                  className="hamburger-line"
+                  style={{
+                    transform: menuOpen
+                      ? "translateY(-6px) rotate(-45deg)"
+                      : "none",
+                  }}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Mobile backdrop ── */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(4px)",
+            animation: "fadeIn 0.2s ease",
+          }}
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile drawer ── */}
+      <div
+        className="fixed top-0 right-0 h-full z-50 lg:hidden flex flex-col"
+        style={{
+          width: "min(320px, 85vw)",
+          background: "var(--color-primary)",
+          transform: menuOpen ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+          boxShadow: menuOpen ? "-8px 0 40px rgba(0,0,0,0.25)" : "none",
+          overflowY: "auto",
+        }}
+      >
+        {/* Drawer header */}
+        <div
+          className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+        >
           <Link
             to="/"
-            className="flex items-center gap-2 no-underline flex-shrink-0"
+            className="flex items-center gap-2 no-underline"
+            onClick={() => setMenuOpen(false)}
           >
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--color-accent), #f97316)",
+                color: "#1f2937",
+              }}
+            >
+              R
+            </div>
             <span
               style={{
                 color: "var(--color-accent)",
                 fontFamily: "var(--font-heading)",
               }}
-              className="text-xl font-black tracking-tight"
+              className="font-black"
             >
-              Syed's
-            </span>
-            <span className="text-white text-xl font-black tracking-tight">
-              Lab
+              Syed's Lab
             </span>
           </Link>
-
-          {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="no-underline px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                style={{
-                  color: isActive(l.to)
-                    ? "var(--color-accent)"
-                    : "rgba(255,255,255,0.85)",
-                  fontWeight: isActive(l.to) ? 700 : 500,
-                  borderBottom: isActive(l.to)
-                    ? "2px solid var(--color-accent)"
-                    : "2px solid transparent",
-                }}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Right side: Avatar or Login */}
-          <div className="hidden md:flex items-center gap-3">
-            {!role && (
-              <Link
-                to="/login"
-                className="no-underline text-xs font-semibold px-4 py-1.5 rounded-lg border"
-                style={{
-                  color: "white",
-                  borderColor: "rgba(255,255,255,0.4)",
-                  background: "transparent",
-                }}
-              >
-                Portal Login
-              </Link>
-            )}
-
-            {/* Avatar dropdown — shown when logged in */}
-            {(role === "admin" || role === "collaborator") && (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen((o) => !o)}
-                  className="flex items-center gap-2 rounded-full border-none cursor-pointer p-0.5"
-                  style={{
-                    background: dropdownOpen
-                      ? "rgba(255,255,255,0.2)"
-                      : "rgba(255,255,255,0.1)",
-                    border: "2px solid rgba(255,255,255,0.3)",
-                    transition: "all 0.15s ease",
-                  }}
-                  aria-label="Account menu"
-                >
-                  <AvatarCircle
-                    photo={avatarPhoto}
-                    initials={initials}
-                    size={34}
-                  />
-                </button>
-
-                {/* Dropdown panel */}
-                {dropdownOpen && (
-                  <div
-                    className="absolute right-0 mt-2 rounded-2xl overflow-hidden"
-                    style={{
-                      width: 280,
-                      background: "white",
-                      boxShadow:
-                        "0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.1)",
-                      border: "1px solid #e5e7eb",
-                      zIndex: 200,
-                      animation: "dropdownFade 0.18s ease",
-                    }}
-                  >
-                    <style>{`
-                      @keyframes dropdownFade {
-                        from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-                        to   { opacity: 1; transform: translateY(0) scale(1); }
-                      }
-                    `}</style>
-
-                    {/* Profile header */}
-                    <div
-                      className="px-5 pt-5 pb-4"
-                      style={{ background: "var(--color-primary)" }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <AvatarCircle
-                          photo={avatarPhoto}
-                          initials={initials}
-                          size={48}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-black text-sm leading-tight truncate">
-                            {appUser?.name ?? "User"}
-                          </p>
-                          <p
-                            className="text-xs mt-0.5 truncate"
-                            style={{ color: "rgba(255,255,255,0.6)" }}
-                          >
-                            {appUser?.email ?? ""}
-                          </p>
-                          <span
-                            className="inline-block mt-1.5 text-xs font-bold px-2 py-0.5 rounded-full"
-                            style={{
-                              background:
-                                role === "admin"
-                                  ? "var(--color-accent)"
-                                  : "rgba(255,255,255,0.15)",
-                              color: role === "admin" ? "#1f2937" : "white",
-                            }}
-                          >
-                            {role === "admin"
-                              ? "Administrator"
-                              : "Collaborator"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Menu items */}
-                    <div className="py-2">
-                      {role === "admin" && (
-                        <DropdownItem
-                          to="/admin"
-                          icon="⚙️"
-                          label="Admin Dashboard"
-                          onClick={() => setDropdownOpen(false)}
-                        />
-                      )}
-                      {role === "collaborator" && (
-                        <DropdownItem
-                          to="/collaborator-portal"
-                          icon="🧪"
-                          label="My Portal"
-                          onClick={() => setDropdownOpen(false)}
-                        />
-                      )}
-                      <DropdownItem
-                        to="/"
-                        icon="🏠"
-                        label="View Website"
-                        onClick={() => setDropdownOpen(false)}
-                      />
-                    </div>
-
-                    {/* Logout */}
-                    <div
-                      className="px-3 pb-3 pt-1 border-t"
-                      style={{ borderColor: "#f0f0f0" }}
-                    >
-                      <button
-                        onClick={() => {
-                          logout();
-                          setDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-none text-left"
-                        style={{ background: "#fee2e2", color: "#991b1b" }}
-                      >
-                        <span>🚪</span>
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Mobile hamburger */}
           <button
-            className="md:hidden text-white p-2"
-            onClick={() => setMenuOpen((o) => !o)}
-            aria-label="Toggle menu"
+            onClick={() => setMenuOpen(false)}
+            className="w-8 h-8 rounded-full flex items-center justify-center border-none cursor-pointer text-white text-lg font-bold"
+            style={{ background: "rgba(255,255,255,0.1)" }}
           >
-            <div className="w-5 h-0.5 bg-white mb-1" />
-            <div className="w-5 h-0.5 bg-white mb-1" />
-            <div className="w-5 h-0.5 bg-white" />
+            ×
           </button>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div
-          className="md:hidden px-4 pb-4 flex flex-col gap-1"
-          style={{ background: "var(--color-navbar)" }}
-        >
-          {/* Mobile user info bar */}
-          {(role === "admin" || role === "collaborator") && appUser && (
-            <div
-              className="flex items-center gap-3 py-3 mb-2 border-b"
-              style={{ borderColor: "rgba(255,255,255,0.15)" }}
-            >
-              <AvatarCircle photo={avatarPhoto} initials={initials} size={38} />
-              <div>
-                <p className="text-white text-sm font-bold">{appUser.name}</p>
+        {/* User profile card */}
+        {(role === "admin" || role === "collaborator") && appUser && (
+          <div
+            className="mx-4 mt-4 rounded-2xl p-4"
+            style={{ background: "rgba(255,255,255,0.08)" }}
+          >
+            <div className="flex items-center gap-3">
+              <AvatarCircle photo={avatarPhoto} initials={initials} size={44} />
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-black text-sm truncate">
+                  {appUser.name}
+                </p>
                 <p
-                  className="text-xs"
+                  className="text-xs truncate"
                   style={{ color: "rgba(255,255,255,0.5)" }}
                 >
                   {appUser.email}
                 </p>
+                <span
+                  className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    background:
+                      role === "admin"
+                        ? "var(--color-accent)"
+                        : "rgba(255,255,255,0.15)",
+                    color: role === "admin" ? "#1f2937" : "white",
+                  }}
+                >
+                  {role === "admin" ? "Administrator" : "Collaborator"}
+                </span>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Nav links */}
+        <div className="flex-1 px-4 py-4">
+          <p
+            className="text-xs font-black uppercase tracking-widest mb-3 px-2"
+            style={{ color: "rgba(255,255,255,0.3)" }}
+          >
+            Navigation
+          </p>
+          {navLinks.map((l) => {
+            const active = isActive(l.to);
+            return (
+              <Link
+                key={l.to}
+                to={l.to}
+                onClick={() => setMenuOpen(false)}
+                className="no-underline flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all"
+                style={{
+                  background: active ? "rgba(255,255,255,0.12)" : "transparent",
+                  color: active
+                    ? "var(--color-accent)"
+                    : "rgba(255,255,255,0.8)",
+                  fontWeight: active ? 700 : 500,
+                  fontSize: 14,
+                  borderLeft: active
+                    ? "3px solid var(--color-accent)"
+                    : "3px solid transparent",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{l.icon}</span>
+                {l.label}
+                {active && (
+                  <span
+                    className="ml-auto text-xs"
+                    style={{ color: "var(--color-accent)" }}
+                  >
+                    ●
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+
+          {/* Portal links */}
+          {(role === "admin" || role === "collaborator") && (
+            <>
+              <p
+                className="text-xs font-black uppercase tracking-widest mb-3 mt-5 px-2"
+                style={{ color: "rgba(255,255,255,0.3)" }}
+              >
+                Portal
+              </p>
+              {role === "admin" && (
+                <Link
+                  to="/admin"
+                  onClick={() => setMenuOpen(false)}
+                  className="no-underline flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
+                  <span>⚙️</span> Admin Dashboard
+                </Link>
+              )}
+              {role === "collaborator" && (
+                <Link
+                  to="/collaborator-portal"
+                  onClick={() => setMenuOpen(false)}
+                  className="no-underline flex items-center gap-3 px-3 py-3 rounded-xl mb-1"
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
+                  <span>🧪</span> My Portal
+                </Link>
+              )}
+            </>
           )}
+        </div>
 
-          {navLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              onClick={() => setMenuOpen(false)}
-              className="no-underline py-2 text-sm font-medium border-b"
-              style={{
-                color: "rgba(255,255,255,0.85)",
-                borderColor: "rgba(255,255,255,0.1)",
-              }}
-            >
-              {l.label}
-            </Link>
-          ))}
-
+        {/* Bottom actions */}
+        <div
+          className="px-4 pb-6 flex-shrink-0 flex flex-col gap-2"
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            paddingTop: 16,
+          }}
+        >
           {!role && (
             <Link
               to="/login"
               onClick={() => setMenuOpen(false)}
-              className="no-underline text-sm font-semibold py-2"
-              style={{ color: "var(--color-accent)" }}
+              className="no-underline flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm"
+              style={{
+                background: "var(--color-accent)",
+                color: "#1f2937",
+                boxShadow: "0 4px 12px rgba(245,158,11,0.35)",
+              }}
             >
-              Portal Login
-            </Link>
-          )}
-          {role === "admin" && (
-            <Link
-              to="/admin"
-              onClick={() => setMenuOpen(false)}
-              className="no-underline text-sm font-semibold py-2"
-              style={{ color: "var(--color-accent)" }}
-            >
-              Admin Dashboard
-            </Link>
-          )}
-          {role === "collaborator" && (
-            <Link
-              to="/collaborator-portal"
-              onClick={() => setMenuOpen(false)}
-              className="no-underline text-sm font-semibold py-2"
-              style={{ color: "var(--color-accent)" }}
-            >
-              My Portal
+              🔑 Portal Login
             </Link>
           )}
           {(role === "admin" || role === "collaborator") && (
@@ -360,15 +638,15 @@ const Navbar: React.FC = () => {
                 logout();
                 setMenuOpen(false);
               }}
-              className="text-sm text-left py-2 bg-transparent border-none cursor-pointer font-semibold"
-              style={{ color: "#f87171" }}
+              className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border-none cursor-pointer"
+              style={{ background: "#fee2e2", color: "#991b1b" }}
             >
-              Sign Out
+              🚪 Sign Out
             </button>
           )}
         </div>
-      )}
-    </nav>
+      </div>
+    </>
   );
 };
 
@@ -414,7 +692,7 @@ const AvatarCircle: React.FC<{
   );
 };
 
-// ── Dropdown menu item ─────────────────────────────────────────
+// ── Dropdown item ──────────────────────────────────────────────
 const DropdownItem: React.FC<{
   to: string;
   icon: string;
