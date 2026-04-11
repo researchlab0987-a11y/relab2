@@ -3,7 +3,6 @@ import PublicationCard from "../components/PublicationCard";
 import { usePublications, useSiteContent } from "../firebase/hooks";
 import type { Publication } from "../types";
 
-// ── Helpers ────────────────────────────────────────────────────
 function groupByYear(list: Publication[]): Record<number, Publication[]> {
   return list.reduce(
     (acc, p) => {
@@ -23,7 +22,6 @@ const Publications: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedTag, setSelectedTag] = useState<string>("");
 
-  // ── Derived filter options ─────────────────────────────────
   const allYears = useMemo(() => {
     const set = new Set([...ongoing, ...published].map((p) => p.year));
     return Array.from(set).sort((a, b) => b - a);
@@ -36,7 +34,6 @@ const Publications: React.FC = () => {
     return Array.from(set).sort();
   }, [ongoing, published]);
 
-  // ── Filter function ────────────────────────────────────────
   const filter = (list: Publication[]) =>
     list.filter((p) => {
       const q = search.toLowerCase();
@@ -82,27 +79,27 @@ const Publications: React.FC = () => {
       </div>
     );
 
-  const tabStyle = (active: boolean) => ({
-    padding: "9px 20px",
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    padding: "8px 18px",
     border: "none",
     borderBottom: active
-      ? "3px solid var(--color-primary)"
-      : "3px solid transparent",
+      ? "2px solid var(--color-primary)"
+      : "2px solid transparent",
     cursor: "pointer",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: active ? 700 : 500,
     color: active ? "var(--color-primary)" : "#6b7280",
     background: "transparent",
     transition: "color 0.15s",
-    whiteSpace: "nowrap" as const,
+    whiteSpace: "nowrap",
   });
 
   const selectStyle: React.CSSProperties = {
-    padding: "8px 32px 8px 12px",
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    fontSize: 13,
-    fontWeight: 600,
+    padding: "7px 28px 7px 10px",
+    border: "1px solid #e2e8f0",
+    borderRadius: 6,
+    fontSize: 12,
+    fontWeight: 500,
     color: "#374151",
     background: "white",
     cursor: "pointer",
@@ -110,20 +107,18 @@ const Publications: React.FC = () => {
     appearance: "none",
     WebkitAppearance: "none",
     backgroundImage:
-      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")",
+      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")",
     backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+    backgroundPosition: "right 8px center",
   };
 
   return (
     <div>
-      {/* ── Hero ── */}
+      {/* Hero */}
       <section
         className="relative py-20 text-center px-4 overflow-hidden"
         style={{ background: "var(--color-primary)" }}
       >
-        {/* Decorative dots */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -148,107 +143,75 @@ const Publications: React.FC = () => {
           >
             {content["publications.pageSubtitle"] ?? ""}
           </p>
-          {/* Hero stats */}
+          {/* Stats */}
           <div className="flex items-center justify-center gap-8">
-            <div className="text-center">
-              <div
-                className="text-2xl font-black"
-                style={{ color: "var(--color-accent)" }}
-              >
-                {published.length}
-              </div>
-              <div
-                className="text-xs"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
-                Published
-              </div>
-            </div>
-            <div
-              className="w-px h-8"
-              style={{ background: "rgba(255,255,255,0.2)" }}
-            />
-            <div className="text-center">
-              <div
-                className="text-2xl font-black"
-                style={{ color: "var(--color-accent)" }}
-              >
-                {ongoing.length}
-              </div>
-              <div
-                className="text-xs"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
-                Ongoing
-              </div>
-            </div>
-            <div
-              className="w-px h-8"
-              style={{ background: "rgba(255,255,255,0.2)" }}
-            />
-            <div className="text-center">
-              <div
-                className="text-2xl font-black"
-                style={{ color: "var(--color-accent)" }}
-              >
-                {
-                  [
-                    ...new Set(
-                      [...ongoing, ...published].flatMap((p) => p.tags ?? []),
-                    ),
-                  ].length
-                }
-              </div>
-              <div
-                className="text-xs"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
-                Topics
-              </div>
-            </div>
+            {[
+              { value: published.length, label: "Published" },
+              { value: ongoing.length, label: "Ongoing" },
+              {
+                value: [
+                  ...new Set(
+                    [...ongoing, ...published].flatMap((p) => p.tags ?? []),
+                  ),
+                ].length,
+                label: "Topics",
+              },
+            ].map((s, i, arr) => (
+              <React.Fragment key={s.label}>
+                <div className="text-center">
+                  <div
+                    className="text-2xl font-black"
+                    style={{ color: "var(--color-accent)" }}
+                  >
+                    {s.value}
+                  </div>
+                  <div
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.6)" }}
+                  >
+                    {s.label}
+                  </div>
+                </div>
+                {i < arr.length - 1 && (
+                  <div
+                    className="w-px h-8"
+                    style={{ background: "rgba(255,255,255,0.2)" }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        {/* ── Filter bar ── */}
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        {/* Filter bar */}
         <div
-          className="bg-white rounded-2xl p-4 mb-8 flex flex-wrap items-center gap-3"
-          style={{
-            boxShadow: "0 2px 14px rgba(0,0,0,0.07)",
-            border: "1px solid #f0f0f0",
-          }}
+          className="bg-white rounded-xl p-3 mb-6 flex flex-wrap items-center gap-3"
+          style={{ border: "1px solid #e2e8f0" }}
         >
-          {/* Search */}
-          <div className="relative flex-1" style={{ minWidth: 200 }}>
-            <span
-              className="absolute left-3 top-1/2 text-sm"
-              style={{ transform: "translateY(-50%)", color: "#9ca3af" }}
-            >
-              🔍
-            </span>
+          <div className="relative flex-1" style={{ minWidth: 180 }}>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search title, author, journal, tag..."
-              className="w-full text-sm outline-none rounded-xl"
+              placeholder="Search title, author, journal..."
+              className="w-full text-sm outline-none rounded-lg"
               style={{
-                padding: "9px 14px 9px 32px",
-                border: "1px solid #e5e7eb",
-                background: "#f9fafb",
+                padding: "7px 12px",
+                border: "1px solid #e2e8f0",
+                background: "#f8fafc",
+                fontSize: 13,
               }}
             />
           </div>
-
-          {/* Year filter */}
           {allYears.length > 1 && (
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               style={{
                 ...selectStyle,
-                borderColor: selectedYear ? "var(--color-primary)" : "#e5e7eb",
+                borderColor: selectedYear ? "var(--color-primary)" : "#e2e8f0",
                 color: selectedYear ? "var(--color-primary)" : "#374151",
               }}
             >
@@ -260,15 +223,13 @@ const Publications: React.FC = () => {
               ))}
             </select>
           )}
-
-          {/* Tag filter */}
           {allTags.length > 0 && (
             <select
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
               style={{
                 ...selectStyle,
-                borderColor: selectedTag ? "var(--color-primary)" : "#e5e7eb",
+                borderColor: selectedTag ? "var(--color-primary)" : "#e2e8f0",
                 color: selectedTag ? "var(--color-primary)" : "#374151",
               }}
             >
@@ -280,30 +241,27 @@ const Publications: React.FC = () => {
               ))}
             </select>
           )}
-
-          {/* Clear */}
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs font-bold px-3 py-2 rounded-xl border-none cursor-pointer"
+              className="text-xs font-semibold px-3 py-1.5 rounded border-none cursor-pointer"
               style={{ background: "#fee2e2", color: "#991b1b" }}
             >
-              ✕ Clear
+              Clear ×
             </button>
           )}
-
           <span
-            className="ml-auto text-xs font-semibold"
-            style={{ color: "#9ca3af" }}
+            className="ml-auto text-xs"
+            style={{ color: "#94a3b8" }}
           >
             {totalShown} result{totalShown !== 1 ? "s" : ""}
           </span>
         </div>
 
-        {/* ── Tabs ── */}
+        {/* Tabs */}
         <div
           className="flex border-b mb-8 overflow-x-auto"
-          style={{ borderColor: "#e5e7eb" }}
+          style={{ borderColor: "#e2e8f0" }}
         >
           <button style={tabStyle(tab === "all")} onClick={() => setTab("all")}>
             All ({filteredOngoing.length + filteredPublished.length})
@@ -312,28 +270,28 @@ const Publications: React.FC = () => {
             style={tabStyle(tab === "ongoing")}
             onClick={() => setTab("ongoing")}
           >
-            🔬 Ongoing ({filteredOngoing.length})
+            Ongoing ({filteredOngoing.length})
           </button>
           <button
             style={tabStyle(tab === "published")}
             onClick={() => setTab("published")}
           >
-            ✅ Published ({filteredPublished.length})
+            Published ({filteredPublished.length})
           </button>
         </div>
 
-        {/* ── Ongoing Section ── */}
+        {/* Ongoing */}
         {(tab === "all" || tab === "ongoing") && filteredOngoing.length > 0 && (
-          <div className="mb-14">
+          <div className="mb-12">
             <SectionHeader
-              title={content["publications.ongoingTitle"] ?? "Ongoing Research"}
+              title={
+                content["publications.ongoingTitle"] ?? "Ongoing Research"
+              }
               subtitle={content["publications.ongoingSubtitle"]}
               count={filteredOngoing.length}
-              color="var(--color-accent)"
-              badgeBg="#fef3c7"
-              badgeText="#92400e"
+              accentColor="#d97706"
             />
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {filteredOngoing.map((p) => (
                 <PublicationCard key={p.id} publication={p} />
               ))}
@@ -341,19 +299,18 @@ const Publications: React.FC = () => {
           </div>
         )}
 
-        {/* ── Published Section — grouped by year ── */}
+        {/* Published — grouped by year */}
         {(tab === "all" || tab === "published") &&
           filteredPublished.length > 0 && (
             <div>
               <SectionHeader
                 title={
-                  content["publications.publishedTitle"] ?? "Published Research"
+                  content["publications.publishedTitle"] ??
+                  "Published Research"
                 }
                 subtitle={content["publications.publishedSubtitle"]}
                 count={filteredPublished.length}
-                color="var(--color-secondary)"
-                badgeBg="#dbeafe"
-                badgeText="#1e40af"
+                accentColor="var(--color-primary)"
               />
               {sortedYears.map((year) => (
                 <YearGroup
@@ -365,17 +322,14 @@ const Publications: React.FC = () => {
             </div>
           )}
 
-        {/* ── Empty state ── */}
+        {/* Empty */}
         {totalShown === 0 && (
           <div className="text-center py-20">
-            <div className="text-5xl mb-4">📭</div>
-            <p className="font-semibold text-gray-500 text-lg">
-              No publications found.
-            </p>
+            <p className="text-gray-400 text-base">No publications found.</p>
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-4 text-sm font-bold px-5 py-2.5 rounded-xl text-white border-none cursor-pointer"
+                className="mt-4 text-sm font-semibold px-5 py-2 rounded-lg text-white border-none cursor-pointer"
                 style={{ background: "var(--color-primary)" }}
               >
                 Clear Filters
@@ -393,75 +347,62 @@ const SectionHeader: React.FC<{
   title: string;
   subtitle?: string;
   count: number;
-  color: string;
-  badgeBg: string;
-  badgeText: string;
-}> = ({ title, subtitle, count, color, badgeBg, badgeText }) => (
-  <div className="mb-6">
-    <div className="flex items-center gap-3 mb-1">
+  accentColor: string;
+}> = ({ title, subtitle, count, accentColor }) => (
+  <div className="mb-5">
+    <div className="flex items-center gap-2 mb-1">
       <div
-        className="w-1 h-7 rounded-full flex-shrink-0"
-        style={{ background: color }}
+        className="w-0.5 h-5 rounded-full flex-shrink-0"
+        style={{ background: accentColor }}
       />
       <h2
-        className="font-black text-xl"
-        style={{
-          color: "var(--color-primary)",
-          fontFamily: "var(--font-heading)",
-        }}
+        className="font-black text-lg"
+        style={{ color: "var(--color-primary)", fontFamily: "var(--font-heading)" }}
       >
         {title}
       </h2>
       <span
-        className="text-xs font-black px-2.5 py-1 rounded-full"
-        style={{ background: badgeBg, color: badgeText }}
+        className="text-xs font-semibold px-2 py-0.5 rounded"
+        style={{ background: "#f1f5f9", color: "#475569" }}
       >
         {count}
       </span>
     </div>
-    {subtitle && <p className="text-sm text-gray-500 ml-4 mb-3">{subtitle}</p>}
-    <div
-      className="h-0.5 w-24 ml-4 rounded-full"
-      style={{ background: color, opacity: 0.35 }}
-    />
+    {subtitle && (
+      <p className="text-sm text-gray-500 ml-3">{subtitle}</p>
+    )}
   </div>
 );
 
-// ── Year group for published papers ───────────────────────────
-const YearGroup: React.FC<{ year: number; publications: Publication[] }> = ({
-  year,
-  publications,
-}) => {
+// ── Year group ─────────────────────────────────────────────────
+const YearGroup: React.FC<{
+  year: number;
+  publications: Publication[];
+}> = ({ year, publications }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="mb-8">
-      {/* Year header */}
       <button
         onClick={() => setCollapsed((c) => !c)}
-        className="flex items-center gap-3 w-full text-left mb-4 bg-transparent border-none cursor-pointer group"
+        className="flex items-center gap-3 w-full text-left mb-3 bg-transparent border-none cursor-pointer"
       >
-        <div
-          className="flex items-center gap-3 px-4 py-2 rounded-xl"
-          style={{ background: "var(--color-primary)" }}
+        <span
+          className="text-sm font-black px-3 py-1 rounded"
+          style={{ background: "var(--color-primary)", color: "white" }}
         >
-          <span className="text-white font-black text-sm">{year}</span>
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(255,255,255,0.2)", color: "white" }}
-          >
-            {publications.length} paper{publications.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-        <div className="flex-1 h-px" style={{ background: "#e5e7eb" }} />
-        <span className="text-xs font-bold" style={{ color: "#9ca3af" }}>
-          {collapsed ? "▼ Show" : "▲ Hide"}
+          {year}
+        </span>
+        <span className="text-xs text-gray-400">
+          {publications.length} paper{publications.length !== 1 ? "s" : ""}
+        </span>
+        <div className="flex-1 h-px" style={{ background: "#e2e8f0" }} />
+        <span className="text-xs text-gray-400">
+          {collapsed ? "▼ show" : "▲ hide"}
         </span>
       </button>
-
-      {/* Papers */}
       {!collapsed && (
-        <div className="flex flex-col gap-4 pl-2">
+        <div className="flex flex-col gap-3">
           {publications.map((p) => (
             <PublicationCard key={p.id} publication={p} />
           ))}
