@@ -46,17 +46,21 @@ const Login: React.FC = () => {
     setError("");
     try {
       // Check if email exists in Firestore users collection
-      const { getDocs, collection, query, where } = await import("firebase/firestore");
+      const { getDocs, collection, query, where } =
+        await import("firebase/firestore");
       const { db } = await import("../firebase/config");
-      
-      const q = query(collection(db, "users"), where("email", "==", form.email));
+
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", form.email),
+      );
       const snap = await getDocs(q);
-  
+
       if (snap.empty) {
         setError("No account found with this email address.");
         return;
       }
-  
+
       // Email exists — send reset email
       await sendPasswordResetEmail(auth, form.email);
       setResetSent(true);
@@ -191,7 +195,7 @@ const Login: React.FC = () => {
 
           <p className="text-center text-xs text-gray-400 mt-2">
             Not a collaborator yet?{" "}
-            
+            <a
               href="/collaborators"
               className="font-semibold no-underline hover:underline"
               style={{ color: "var(--color-secondary)" }}
