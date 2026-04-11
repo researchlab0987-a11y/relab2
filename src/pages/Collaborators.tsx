@@ -16,12 +16,10 @@ const Collaborators: React.FC = () => {
   const [selected, setSelected] = useState<CollaboratorProfile | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  // ── Filter state ─────────────────────────────────────────────
   const [designationFilter, setDesignationFilter] = useState("");
   const [affiliationFilter, setAffiliationFilter] = useState("");
   const [search, setSearch] = useState("");
 
-  // ── Derive unique dropdown options from live data ────────────
   const designationOptions = useMemo(() => {
     const set = new Set(
       collaborators.map((c) => c.designation?.trim()).filter(Boolean),
@@ -36,7 +34,6 @@ const Collaborators: React.FC = () => {
     return Array.from(set).sort();
   }, [collaborators]);
 
-  // ── Filtered list ────────────────────────────────────────────
   const filtered = useMemo(() => {
     return collaborators.filter((c) => {
       const matchDesignation =
@@ -56,7 +53,6 @@ const Collaborators: React.FC = () => {
   }, [collaborators, designationFilter, affiliationFilter, search]);
 
   const hasActiveFilter = !!(designationFilter || affiliationFilter || search);
-
   const clearFilters = () => {
     setDesignationFilter("");
     setAffiliationFilter("");
@@ -135,7 +131,7 @@ const Collaborators: React.FC = () => {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* ── Filter Bar ── */}
+        {/* Filter Bar */}
         {collaborators.length > 0 && (
           <div
             className="bg-white rounded-2xl p-4 mb-8 flex flex-wrap items-center gap-3"
@@ -144,7 +140,6 @@ const Collaborators: React.FC = () => {
               border: "1px solid #f0f0f0",
             }}
           >
-            {/* Search */}
             <div className="relative flex-1" style={{ minWidth: 200 }}>
               <span
                 className="absolute left-3 top-1/2 text-gray-400 text-sm"
@@ -166,40 +161,30 @@ const Collaborators: React.FC = () => {
                 }}
               />
             </div>
-
-            {/* Designation dropdown */}
-            <div className="relative">
-              <select
-                value={designationFilter}
-                onChange={(e) => setDesignationFilter(e.target.value)}
-                style={designationFilter ? activeSelectStyle : selectStyle}
-              >
-                <option value="">All Designations</option>
-                {designationOptions.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Affiliation / University dropdown */}
-            <div className="relative">
-              <select
-                value={affiliationFilter}
-                onChange={(e) => setAffiliationFilter(e.target.value)}
-                style={affiliationFilter ? activeSelectStyle : selectStyle}
-              >
-                <option value="">All Universities</option>
-                {affiliationOptions.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Clear filters */}
+            <select
+              value={designationFilter}
+              onChange={(e) => setDesignationFilter(e.target.value)}
+              style={designationFilter ? activeSelectStyle : selectStyle}
+            >
+              <option value="">All Designations</option>
+              {designationOptions.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <select
+              value={affiliationFilter}
+              onChange={(e) => setAffiliationFilter(e.target.value)}
+              style={affiliationFilter ? activeSelectStyle : selectStyle}
+            >
+              <option value="">All Universities</option>
+              {affiliationOptions.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
             {hasActiveFilter && (
               <button
                 onClick={clearFilters}
@@ -209,8 +194,6 @@ const Collaborators: React.FC = () => {
                 ✕ Clear
               </button>
             )}
-
-            {/* Result count */}
             <div
               className="ml-auto text-xs font-semibold"
               style={{ color: "#9ca3af" }}
@@ -220,7 +203,7 @@ const Collaborators: React.FC = () => {
           </div>
         )}
 
-        {/* ── Grid ── */}
+        {/* Grid */}
         {filtered.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🔍</div>
@@ -281,7 +264,7 @@ const Collaborators: React.FC = () => {
   );
 };
 
-// ── Full profile detail view ───────────────────────────────────
+// ── Full profile detail ────────────────────────────────────────
 const CollaboratorDetail: React.FC<{
   c: CollaboratorProfile;
   onBack: () => void;
@@ -326,7 +309,6 @@ const CollaboratorDetail: React.FC<{
           {c.affiliation}
         </p>
       </div>
-
       <div className="max-w-4xl mx-auto px-4 py-12">
         <button
           onClick={onBack}
@@ -335,7 +317,6 @@ const CollaboratorDetail: React.FC<{
         >
           ← Back to Collaborators
         </button>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div className="md:col-span-2">
             <h2
@@ -350,7 +331,6 @@ const CollaboratorDetail: React.FC<{
             >
               {c.bio}
             </p>
-
             {c.researchInterests?.length > 0 && (
               <>
                 <h3
@@ -372,7 +352,6 @@ const CollaboratorDetail: React.FC<{
                 </div>
               </>
             )}
-
             {c.publications?.length > 0 && (
               <>
                 <h3
@@ -406,8 +385,6 @@ const CollaboratorDetail: React.FC<{
               </>
             )}
           </div>
-
-          {/* Sidebar links */}
           <div>
             <h3
               className="font-bold text-base mb-4"
@@ -448,7 +425,7 @@ const CollaboratorDetail: React.FC<{
   );
 };
 
-// ── Request Modal ──────────────────────────────────────────────
+// ── Request Modal — NO password field ─────────────────────────
 const emptyPub = (): CollaboratorPublication => ({
   id: Date.now().toString(),
   title: "",
@@ -461,7 +438,6 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: "",
     affiliation: "",
     designation: "",
     bio: "",
@@ -497,7 +473,7 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.password || !form.bio) {
+    if (!form.name || !form.email || !form.bio) {
       setError("Please fill all required fields.");
       return;
     }
@@ -531,8 +507,8 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     >
       <div className="bg-white rounded-2xl w-full max-w-2xl my-8 overflow-hidden shadow-2xl">
         <div
-          className="flex items-center justify-between px-6 py-4 border-b"
-          style={{ borderColor: "#e5e7eb", background: "var(--color-primary)" }}
+          className="flex items-center justify-between px-6 py-4"
+          style={{ background: "var(--color-primary)" }}
         >
           <h2 className="text-white font-black text-lg">
             Collaborator Request
@@ -554,9 +530,9 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             >
               Request Submitted!
             </h3>
-            <p className="text-gray-600 text-sm">
-              Admin will review your application. You'll receive login
-              credentials once approved.
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Your application is under review. If approved, you will receive an
+              email with your login credentials.
             </p>
             <button
               onClick={onClose}
@@ -572,6 +548,15 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </div>
         ) : (
           <form onSubmit={submit} className="p-6 flex flex-col gap-4">
+            {/* Info notice — no password needed */}
+            <div
+              className="rounded-xl p-3 text-xs text-blue-700"
+              style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}
+            >
+              ℹ️ No password required. If your request is approved, you will
+              receive an email with your login credentials.
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <LabeledInput label="Full Name *">
                 <input
@@ -592,16 +577,6 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   placeholder="jane@buet.ac.bd"
                 />
               </LabeledInput>
-              <LabeledInput label="Password *">
-                <input
-                  required
-                  type="password"
-                  className={inp}
-                  style={inpStyle}
-                  {...f("password")}
-                  placeholder="Min 8 chars"
-                />
-              </LabeledInput>
               <LabeledInput label="Designation *">
                 <input
                   required
@@ -611,7 +586,7 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   placeholder="Professor, PhD Student..."
                 />
               </LabeledInput>
-              <LabeledInput label="Affiliation *" className="col-span-2">
+              <LabeledInput label="Affiliation *">
                 <input
                   required
                   className={inp}
@@ -637,7 +612,7 @@ const RequestModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 className={inp}
                 style={{ ...inpStyle, resize: "vertical" }}
                 {...f("bio")}
-                placeholder="Brief description..."
+                placeholder="Brief description of your background..."
               />
             </LabeledInput>
 
