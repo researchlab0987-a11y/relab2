@@ -116,70 +116,80 @@ const Publications: React.FC = () => {
     <div>
       {/* Hero */}
       <section
-        className="relative py-20 text-center px-4 overflow-hidden"
+        className="relative overflow-hidden py-20 text-center px-4"
         style={{ background: "var(--color-primary)" }}
       >
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-        />
+        {content["publications.bannerUrl"] && (
+          <img
+            src={content["publications.bannerUrl"]}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: "brightness(0.45)" }}
+          />
+        )}
         <div className="relative z-10">
-          <h1
-            className="font-black text-white mb-4"
+          <div
+            className="absolute inset-0 opacity-10"
             style={{
-              fontSize: "clamp(2rem,4vw,3rem)",
-              fontFamily: "var(--font-heading)",
+              backgroundImage:
+                "radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
             }}
-          >
-            {content["publications.pageTitle"] ?? "Publications"}
-          </h1>
-          <p
-            className="text-base max-w-xl mx-auto mb-6"
-            style={{ color: "rgba(255,255,255,0.72)" }}
-          >
-            {content["publications.pageSubtitle"] ?? ""}
-          </p>
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-8">
-            {[
-              { value: published.length, label: "Published" },
-              { value: ongoing.length, label: "Ongoing" },
-              {
-                value: [
-                  ...new Set(
-                    [...ongoing, ...published].flatMap((p) => p.tags ?? []),
-                  ),
-                ].length,
-                label: "Topics",
-              },
-            ].map((s, i, arr) => (
-              <React.Fragment key={s.label}>
-                <div className="text-center">
-                  <div
-                    className="text-2xl font-black"
-                    style={{ color: "var(--color-accent)" }}
-                  >
-                    {s.value}
+          />
+          <div className="relative z-10">
+            <h1
+              className="font-black text-white mb-4"
+              style={{
+                fontSize: "clamp(2rem,4vw,3rem)",
+                fontFamily: "var(--font-heading)",
+              }}
+            >
+              {content["publications.pageTitle"] ?? "Publications"}
+            </h1>
+            <p
+              className="text-base max-w-xl mx-auto mb-6"
+              style={{ color: "rgba(255,255,255,0.72)" }}
+            >
+              {content["publications.pageSubtitle"] ?? ""}
+            </p>
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-8">
+              {[
+                { value: published.length, label: "Published" },
+                { value: ongoing.length, label: "Ongoing" },
+                {
+                  value: [
+                    ...new Set(
+                      [...ongoing, ...published].flatMap((p) => p.tags ?? []),
+                    ),
+                  ].length,
+                  label: "Topics",
+                },
+              ].map((s, i, arr) => (
+                <React.Fragment key={s.label}>
+                  <div className="text-center">
+                    <div
+                      className="text-2xl font-black"
+                      style={{ color: "var(--color-accent)" }}
+                    >
+                      {s.value}
+                    </div>
+                    <div
+                      className="text-xs"
+                      style={{ color: "rgba(255,255,255,0.6)" }}
+                    >
+                      {s.label}
+                    </div>
                   </div>
-                  <div
-                    className="text-xs"
-                    style={{ color: "rgba(255,255,255,0.6)" }}
-                  >
-                    {s.label}
-                  </div>
-                </div>
-                {i < arr.length - 1 && (
-                  <div
-                    className="w-px h-8"
-                    style={{ background: "rgba(255,255,255,0.2)" }}
-                  />
-                )}
-              </React.Fragment>
-            ))}
+                  {i < arr.length - 1 && (
+                    <div
+                      className="w-px h-8"
+                      style={{ background: "rgba(255,255,255,0.2)" }}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -250,10 +260,7 @@ const Publications: React.FC = () => {
               Clear ×
             </button>
           )}
-          <span
-            className="ml-auto text-xs"
-            style={{ color: "#94a3b8" }}
-          >
+          <span className="ml-auto text-xs" style={{ color: "#94a3b8" }}>
             {totalShown} result{totalShown !== 1 ? "s" : ""}
           </span>
         </div>
@@ -284,9 +291,7 @@ const Publications: React.FC = () => {
         {(tab === "all" || tab === "ongoing") && filteredOngoing.length > 0 && (
           <div className="mb-12">
             <SectionHeader
-              title={
-                content["publications.ongoingTitle"] ?? "Ongoing Research"
-              }
+              title={content["publications.ongoingTitle"] ?? "Ongoing Research"}
               subtitle={content["publications.ongoingSubtitle"]}
               count={filteredOngoing.length}
               accentColor="#d97706"
@@ -305,8 +310,7 @@ const Publications: React.FC = () => {
             <div>
               <SectionHeader
                 title={
-                  content["publications.publishedTitle"] ??
-                  "Published Research"
+                  content["publications.publishedTitle"] ?? "Published Research"
                 }
                 subtitle={content["publications.publishedSubtitle"]}
                 count={filteredPublished.length}
@@ -357,7 +361,10 @@ const SectionHeader: React.FC<{
       />
       <h2
         className="font-black text-lg"
-        style={{ color: "var(--color-primary)", fontFamily: "var(--font-heading)" }}
+        style={{
+          color: "var(--color-primary)",
+          fontFamily: "var(--font-heading)",
+        }}
       >
         {title}
       </h2>
@@ -368,9 +375,7 @@ const SectionHeader: React.FC<{
         {count}
       </span>
     </div>
-    {subtitle && (
-      <p className="text-sm text-gray-500 ml-3">{subtitle}</p>
-    )}
+    {subtitle && <p className="text-sm text-gray-500 ml-3">{subtitle}</p>}
   </div>
 );
 
