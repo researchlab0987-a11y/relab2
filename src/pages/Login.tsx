@@ -45,10 +45,23 @@ const Login: React.FC = () => {
     setResetLoading(true);
     setError("");
     try {
+      // Check if email exists in Firestore users collection
+      const { getDocs, collection, query, where } = await import("firebase/firestore");
+      const { db } = await import("../firebase/config");
+      
+      const q = query(collection(db, "users"), where("email", "==", form.email));
+      const snap = await getDocs(q);
+  
+      if (snap.empty) {
+        setError("No account found with this email address.");
+        return;
+      }
+  
+      // Email exists — send reset email
       await sendPasswordResetEmail(auth, form.email);
       setResetSent(true);
     } catch (err: any) {
-      setError("Could not send reset email. Please check your email address.");
+      setError("Could not send reset email. Please try again.");
     } finally {
       setResetLoading(false);
     }
